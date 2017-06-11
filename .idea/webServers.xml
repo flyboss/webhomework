@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="53ac38d9-7602-41f8-8397-ec1cadb47070" name="test" url="http://localhost:9000">
+        <fileTransfer port="0" mountedRoot="D:\apache-tomcat-9.0.0.M11\webapps\ROOT" accessType="MOUNT" />
+      </webServer>
+    </option>
+  </component>
+</project>
