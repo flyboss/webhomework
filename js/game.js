@@ -13,12 +13,10 @@ var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
 var clock = new THREE.Clock();
-var controls,box,plane,planeBox,propeller,cameraCube,coin;
-var collideMeshList=[];
+var controls, box, plane, planeBox, propeller, cameraCube, coin;
+var collideMeshList = [];
 var movingCube1;
-
-
-
+var message = document.getElementById("message");
 
 init();
 animate();
@@ -36,7 +34,7 @@ function init() {
     //createCoins();
 
 
-    var cubeGeometry = new THREE.CubeGeometry(50, 50, 50, 10, 10, 10);
+    var cubeGeometry = new THREE.CubeGeometry(5, 5, 5, 10, 10, 10);
     var wireMaterial = new THREE.MeshBasicMaterial({
         color: 0xfff000,
         wireframe: true
@@ -45,16 +43,18 @@ function init() {
     scene.add(cameraCube);
 
 
-    // var cubeGeometry1 = new THREE.CubeGeometry(50, 50, 50, 10, 10, 10);
-    // var cubeGeometry1 = new THREE.MeshBasicMaterial({
-    //     color: 0xfff000,
-    //     wireframe: true
-    // });
-    //movingCube1 = new THREE.Mesh(cubeGeometry1, cubeGeometry1);
-    //movingCube1.position.set(-49000, 10000, 9000);
-    //var box = new THREE.BoxHelper( movingCube1 );
-    //scene.add(movingCube1);
-    //collideMeshList.push(movingCube1);
+    var cubeGeometry1 = new THREE.CubeGeometry(50, 50, 50,10, 10, 10);
+    var wireMaterial1 = new THREE.MeshBasicMaterial({
+        color: 0xfff000,
+    });
+    movingCube1 = new THREE.Mesh(cubeGeometry1, wireMaterial1);
+    movingCube1.position.set(-49900, 10000, 9000);
+    collideMeshList.push(movingCube1);
+    var box = new THREE.BoxHelper(movingCube1);
+    box.material.color.setHex(Math.random() * 0xffffff);
+    box.position.set(-49900, 10000, 9000);
+    scene.add(box);
+    collideMeshList.push(box);
     //createPlane();
 
     // var planeGeometry = new THREE.PlaneGeometry(60, 20);
@@ -117,7 +117,7 @@ function init() {
 
     renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(0xE0FFFF);
-    renderer.shadowMapEnabled = true;
+    //renderer.shadowMapEnabled = true;
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
@@ -150,6 +150,7 @@ function updateCollide() {
 
     var originPoint = cameraCube.position.clone();
     var crash;
+
     for (var vertexIndex = 0; vertexIndex < cameraCube.geometry.vertices.length; vertexIndex++) {
         // 顶点原始坐标
         var localVertex = cameraCube.geometry.vertices[vertexIndex].clone();
@@ -157,32 +158,37 @@ function updateCollide() {
         var globalVertex = localVertex.applyMatrix4(cameraCube.matrix);
         var directionVector = globalVertex.sub(cameraCube.position);
         var ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
-        var collisionResults = ray.intersectObjects(collideMeshList);
+        for (var i = 0; i < collideMeshList.length; i++) {
+            var collisionResults = ray.intersectObject(collideMeshList[i],true);
 
-        if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-            crash = true;
-
-            console.log("Crash");
-            break;
+            if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
+                message.innerText = "crash";
+                console.log("Crash");
+                //scene.remove(collideMeshList[i]);
+                // collideMeshLis
+                break;
+            }else{
+                //message.innerText = "nocrash";
+                //console.log("noCrash");
+            }
         }
     }
 }
 
 
-
 function updatePlane() {
-    plane.mesh.position.x=camera.position.x+125;
-    plane.mesh.position.y=camera.position.y-50;
-    plane.mesh.position.z=camera.position.z;
+    plane.mesh.position.x = camera.position.x + 125;
+    plane.mesh.position.y = camera.position.y - 50;
+    plane.mesh.position.z = camera.position.z;
 }
 function createBox() {
-    var geometry = new THREE.CubeGeometry(2,2,2);
+    var geometry = new THREE.CubeGeometry(2, 2, 2);
     var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
     var cube = new THREE.Mesh(geometry, material);
     cube.position.set(900, 900, 45000);
     //cubes.push(box);
     //collideMeshList.push(box);
-    scene.add( cube );
+    scene.add(cube);
     return cube;
 }
 
@@ -250,29 +256,27 @@ function airplane() {
     return this;
 };
 function createPlane() {
-    plane=airplane();
-    plane.name="plane";
-    plane.mesh.position.x=camera.position.x;
-    plane.mesh.position.y=camera.position.y-1;
-    plane.mesh.position.z=camera.position.z-15;
-    planeBox=new THREE.BoxHelper(plane);
+    plane = airplane();
+    plane.name = "plane";
+    plane.mesh.position.x = camera.position.x;
+    plane.mesh.position.y = camera.position.y - 1;
+    plane.mesh.position.z = camera.position.z - 15;
+    planeBox = new THREE.BoxHelper(plane);
     scene.add(plane.mesh);
 }
 
 
-
-
 function createCoins() {
-    var geom = new THREE.CubeGeometry(500,500,500);
+    var geom = new THREE.CubeGeometry(500, 500, 500);
 
     // create the material
     var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
 
     coin = new THREE.Mesh(geom, material);
     // coin.position.set(-14986, 6434, 4371);
-    coin.position.x=camera.position.x+2000;
-    coin.position.y=camera.position.y;
-    coin.position.z=camera.position.z;
+    coin.position.x = camera.position.x + 2000;
+    coin.position.y = camera.position.y;
+    coin.position.z = camera.position.z;
     collideMeshList.push(coin);
     scene.add(coin);
 }
@@ -280,24 +284,20 @@ function updateCoins() {
     //coin.rotation.y+=0.02;
 }
 function updateCameraCube() {
-    cameraCube.position.x=camera.position.x+100;
-    cameraCube.position.y=camera.position.y;
-    cameraCube.position.z=camera.position.z;
+    cameraCube.position.x = camera.position.x + 100;
+    cameraCube.position.y = camera.position.y;
+    cameraCube.position.z = camera.position.z;
 }
 
 function render() {
     controls.update(clock.getDelta());
     //updatePlane();
-    //updateCollide();
+    updateCollide();
     updatePropeller();
     updateCameraCube();
     //updateCoins();
     renderer.render(scene, camera);
 }
-
-
-
-
 
 
 function createMtlObj(options) {
@@ -345,7 +345,7 @@ function animate() {
 }
 function createControls() {
     controls = new THREE.FirstPersonControls(camera);
-    controls.movementSpeed = 3750;
+    controls.movementSpeed = 1750;
     controls.lookSpeed = 0.05;
     controls.lookVertical = true;
 }
@@ -353,9 +353,9 @@ function createLights() {
     var ambient = new THREE.AmbientLight(0xaaaaaa);
     scene.add(ambient);
 
-    var directionalLight = new THREE.DirectionalLight( 0xffffff );
-    directionalLight.position.set( -50000, 50000, 10000).normalize();
-    scene.add( directionalLight );
+    var directionalLight = new THREE.DirectionalLight(0xffffff);
+    directionalLight.position.set(-50000, 50000, 10000).normalize();
+    scene.add(directionalLight);
 
 
     // var ambientLight = new THREE.AmbientLight( 0xbbbbbb );
@@ -383,14 +383,14 @@ function createPropeller() {
 
     propeller = new THREE.Mesh();
 
-    var geomBlade = new THREE.BoxGeometry(800,10,10,1,1,1);
-    var matBlade = new THREE.MeshPhongMaterial({color:Colors.brownDark, shading:THREE.FlatShading});
+    var geomBlade = new THREE.BoxGeometry(800, 10, 10, 1, 1, 1);
+    var matBlade = new THREE.MeshPhongMaterial({color: Colors.brownDark, shading: THREE.FlatShading});
     var blade1 = new THREE.Mesh(geomBlade, matBlade);
     //blade1.position.set(0,0,10);
 
 
     var blade2 = blade1.clone();
-    blade2.rotation.y = Math.PI/2;
+    blade2.rotation.y = Math.PI / 2;
 
     propeller.add(blade1);
     propeller.add(blade2);
@@ -398,9 +398,9 @@ function createPropeller() {
     scene.add(propeller);
 }
 function updatePropeller() {
-    propeller.rotation.y+=0.02;
-    propeller.position.x=camera.position.x;
-    propeller.position.y=camera.position.y+75;
-    propeller.position.z=camera.position.z;
+    propeller.rotation.y += 0.02;
+    propeller.position.x = camera.position.x;
+    propeller.position.y = camera.position.y + 75;
+    propeller.position.z = camera.position.z;
 
 }
