@@ -13,7 +13,8 @@ var mouseX = 0, mouseY = 0;
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
 var clock = new THREE.Clock();
-var controls, box, plane, planeBox, propeller, cameraCube, coin;
+var controls, box, plane, planeBox, propeller;
+var cameraCube, building;
 var collideMeshList = [], flag = [];
 var movingCube1;
 var message = document.getElementById("message");
@@ -31,13 +32,13 @@ function init() {
     camera.position.set(-50000, 10000, 9000);
 
     scene = new THREE.Scene();
-    // scene.fog = new THREE.Fog(0xffffff,0.015,100);
+
+
     createLights();
     createPropeller();
-    //createCoins();
 
 
-    var cubeGeometry = new THREE.CubeGeometry(5, 5, 5, 10, 10, 10);
+    var cubeGeometry = new THREE.CubeGeometry(250, 250, 250, 10, 10, 10);
     var wireMaterial = new THREE.MeshBasicMaterial({
         color: 0xfff000,
         wireframe: true
@@ -48,7 +49,7 @@ function init() {
     createBox();
     createBuilding();
 
-    //createPlane();
+
 
     // var planeGeometry = new THREE.PlaneGeometry(60, 20);
     // var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
@@ -118,32 +119,8 @@ function init() {
     window.addEventListener('resize', onWindowResize, false);
 }
 function updateCollide() {
-    // var delta = clock.getDelta();
-    // var moveDistance = 200 * delta;
-    // var rotateAngle = Math.PI / 2 * delta;
-    // if (keyboard.pressed("A")) {
-    //     movingCube.rotation.y += rotateAngle;
-    // }
-    // if (keyboard.pressed("D")) {
-    //     movingCube.rotation.y += rotateAngle;
-    // }
-    // if (keyboard.pressed("left")) {
-    //     movingCube.position.x -= moveDistance;
-    // }
-    // if (keyboard.pressed("right")) {
-    //     movingCube.position.x += moveDistance;
-    // }
-    // if (keyboard.pressed("up")) {
-    //     movingCube.position.z -= moveDistance;
-    // }
-    // if (keyboard.pressed("down")) {
-    //     movingCube.position.z += moveDistance;
-    // }
-    // var originPoint = movingCube.position.clone();
-
     var originPoint = cameraCube.position.clone();
     var crash;
-
     for (var vertexIndex = 0; vertexIndex < cameraCube.geometry.vertices.length; vertexIndex++) {
         // 顶点原始坐标
         var localVertex = cameraCube.geometry.vertices[vertexIndex].clone();
@@ -168,14 +145,12 @@ function updateCollide() {
                 break;
             }
         }
-
-
         if (crashBuilding == 0) {
-            var buildingResults = ray.intersectObject(scene.getObjectByName("building"), true);
+            var buildingResults = ray.intersectObject(building);
             if (buildingResults.length > 0 && buildingResults[0].distance < directionVector.length()) {
-                score += 10;
-                scene.remove(scene.getObjectByName("building"));
-                message.innerText = score;
+                scene.remove(building);
+                message.innerText = "";
+                document.getElementById("resetdiv").innerText="crash";
                 crashBuilding = 1;
             }
         }
@@ -183,11 +158,6 @@ function updateCollide() {
 }
 
 
-function updatePlane() {
-    plane.mesh.position.x = camera.position.x + 125;
-    plane.mesh.position.y = camera.position.y - 50;
-    plane.mesh.position.z = camera.position.z;
-}
 function createBox() {
     var cubeGeometry = new THREE.CubeGeometry(500, 500, 500, 10, 10, 10);
     var wireMaterial = new THREE.MeshBasicMaterial({
@@ -200,10 +170,10 @@ function createBox() {
     flag.push(1);
     scene.add(box);
     var wireMaterial1 = new THREE.MeshBasicMaterial({
-        color: 0xFF8C00,
+        color:0xFF0033,
     });
-    var box = new THREE.Mesh(cubeGeometry, wireMaterial);
-    box.position.set(22118, 8300, -2116);
+    var box = new THREE.Mesh(cubeGeometry, wireMaterial1);
+    box.position.set(22118, 8100, -2116);
     box.name = "box1";
     collideMeshList.push(box);
     flag.push(1);
@@ -212,107 +182,17 @@ function createBox() {
 
 
 function createBuilding() {
-    var cubeGeometry = new THREE.CubeGeometry(2500, 8200, 2000, 10, 10, 10);
+    var cubeGeometry = new THREE.CubeGeometry(2600, 7900, 1900, 10, 10, 10);
     var wireMaterial = new THREE.MeshBasicMaterial({
-        color: 0xfff000,
+        color: 0x6495ED,
+        wireframe:true
     });
-    var building = new THREE.Mesh(cubeGeometry, wireMaterial);
-    building.position.set(4920, 4160, -18400);
+    building = new THREE.Mesh(cubeGeometry, wireMaterial);
+    building.position.set(4900, 2900, -19100);
     building.name = "building";
     scene.add(building);
 }
 
-function airplane() {
-    this.mesh = new THREE.Object3D();
-    this.mesh.name = "airPlane";
-
-    // Create the cabin
-    var geomCockpit = new THREE.BoxGeometry(60, 50, 50, 1, 1, 1);
-    var matCockpit = new THREE.MeshPhongMaterial({color: Colors.red, shading: THREE.FlatShading});
-    var cockpit = new THREE.Mesh(geomCockpit, matCockpit);
-    cockpit.castShadow = true;
-    cockpit.receiveShadow = true;
-    this.mesh.add(cockpit);
-
-    // Create Engine
-    var geomEngine = new THREE.BoxGeometry(20, 50, 50, 1, 1, 1);
-    var matEngine = new THREE.MeshPhongMaterial({color: Colors.white, shading: THREE.FlatShading});
-    var engine = new THREE.Mesh(geomEngine, matEngine);
-    engine.position.x = 40;
-    engine.castShadow = true;
-    engine.receiveShadow = true;
-    this.mesh.add(engine);
-
-    // Create Tailplane
-
-    var geomTailPlane = new THREE.BoxGeometry(15, 20, 5, 1, 1, 1);
-    var matTailPlane = new THREE.MeshPhongMaterial({color: Colors.red, shading: THREE.FlatShading});
-    var tailPlane = new THREE.Mesh(geomTailPlane, matTailPlane);
-    tailPlane.position.set(-35, 25, 0);
-    tailPlane.castShadow = true;
-    tailPlane.receiveShadow = true;
-    this.mesh.add(tailPlane);
-
-    // Create Wing
-
-    var geomSideWing = new THREE.BoxGeometry(40, 8, 150, 1, 1, 1);
-    var matSideWing = new THREE.MeshPhongMaterial({color: Colors.red, shading: THREE.FlatShading});
-    var sideWing = new THREE.Mesh(geomSideWing, matSideWing);
-    sideWing.position.set(0, 0, 0);
-    sideWing.castShadow = true;
-    sideWing.receiveShadow = true;
-    this.mesh.add(sideWing);
-
-    // Propeller
-
-    var geomPropeller = new THREE.BoxGeometry(20, 10, 10, 1, 1, 1);
-    var matPropeller = new THREE.MeshPhongMaterial({color: Colors.brown, shading: THREE.FlatShading});
-    this.propeller = new THREE.Mesh(geomPropeller, matPropeller);
-    this.propeller.castShadow = true;
-    this.propeller.receiveShadow = true;
-
-    // Blades
-
-    var geomBlade = new THREE.BoxGeometry(1, 100, 20, 1, 1, 1);
-    var matBlade = new THREE.MeshPhongMaterial({color: Colors.brownDark, shading: THREE.FlatShading});
-
-    var blade = new THREE.Mesh(geomBlade, matBlade);
-    blade.position.set(8, 0, 0);
-    blade.castShadow = true;
-    blade.receiveShadow = true;
-    this.propeller.add(blade);
-    this.propeller.position.set(50, 0, 0);
-    this.mesh.add(this.propeller);
-    return this;
-};
-function createPlane() {
-    plane = airplane();
-    plane.name = "plane";
-    plane.mesh.position.x = camera.position.x;
-    plane.mesh.position.y = camera.position.y - 1;
-    plane.mesh.position.z = camera.position.z - 15;
-    planeBox = new THREE.BoxHelper(plane);
-    scene.add(plane.mesh);
-}
-
-
-function createCoins() {
-    var geom = new THREE.CubeGeometry(500, 500, 500);
-
-    // create the material
-    var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-
-    coin = new THREE.Mesh(geom, material);
-    // coin.position.set(-14986, 6434, 4371);
-    coin.position.x = camera.position.x + 2000;
-    coin.position.y = camera.position.y;
-    coin.position.z = camera.position.z;
-    collideMeshList.push(coin);
-    scene.add(coin);
-}
-function updateCoins() {
-    //coin.rotation.y+=0.02;
-}
 function updateCameraCube() {
     cameraCube.position.x = camera.position.x;
     cameraCube.position.y = camera.position.y;
@@ -320,15 +200,13 @@ function updateCameraCube() {
 }
 
 function render() {
-    //if (crashBuilding == 0) {
+    if (crashBuilding == 0) {
     controls.update(clock.getDelta());
-    //updatePlane();
     updateCollide();
     updatePropeller();
     updateCameraCube();
-    //updateCoins();
     renderer.render(scene, camera);
-    //}
+    }
 }
 
 
@@ -385,7 +263,7 @@ function createLights() {
     var ambient = new THREE.AmbientLight(0xaaaaaa);
     scene.add(ambient);
 
-    var directionalLight = new THREE.DirectionalLight(0xffffff);
+    var directionalLight = new THREE.DirectionalLight(0x999999);
     directionalLight.position.set(-50000, 50000, 10000).normalize();
     scene.add(directionalLight);
 
@@ -435,4 +313,9 @@ function updatePropeller() {
     propeller.position.y = camera.position.y + 75;
     propeller.position.z = camera.position.z;
 
+}
+function reset() {
+    if(crashBuilding==1){
+        location.reload();
+    }
 }
